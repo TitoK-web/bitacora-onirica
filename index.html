@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bitácora Onírica</title>
+<meta name="description" content="Convierte los fragmentos de tus sueños en relatos, cada mañana.">
+<meta name="theme-color" content="#14111F">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bitácora">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ink:#211B32; --bg:#F5F2FA; --surface:#EDE7F7; --surface-2:#E3DBF3;
+    --border:#D6CCE8; --muted:#7C7195;
+    --accent:#A8631F; --accent-contrast:#FFFFFF; --accent-soft:#F0DAB8;
+    --dream:#6B5B95; --dream-soft:#E4DEF3;
+    --danger:#A23E3E;
+    --font-display:'Fraunces',Georgia,'Times New Roman',serif;
+    --font-body:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#ECE7F7; --bg:#14111F; --surface:#1E1A2C; --surface-2:#262038;
+      --border:#332D49; --muted:#A79BC2;
+      --accent:#E3A857; --accent-contrast:#241505; --accent-soft:#3B2C15;
+      --dream:#9E8CD1; --dream-soft:#2A2440;
+      --danger:#D98080;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--font-body);
+    padding-inline:20px;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+  .app{width:100%; max-width:560px; display:flex; flex-direction:column;}
+
+  header.top{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:5;
+    background:var(--bg); padding-block:18px 12px;
+    display:flex; flex-direction:column; gap:14px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand-row{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand .mark{
+    width:10px; height:10px; border-radius:50%;
+    background:var(--accent); flex:none; margin-bottom:2px;
+  }
+  h1{
+    font-family:var(--font-display); font-size:1.5rem; font-weight:600;
+    margin:0; letter-spacing:.2px;
+  }
+  .tagline{font-size:.8rem; color:var(--muted); margin:0;}
+  .settings-toggle{
+    background:none; border:1px solid var(--border); border-radius:8px;
+    color:var(--muted); font-family:var(--font-body); font-size:.75rem;
+    padding:6px 10px; cursor:pointer; white-space:nowrap;
+  }
+
+  nav.tabs{display:flex; gap:6px;}
+  nav.tabs button{
+    flex:1; padding:9px 12px; border-radius:9px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); font-family:var(--font-body);
+    font-size:.85rem; font-weight:600; cursor:pointer;
+  }
+  nav.tabs button[aria-selected="true"]{
+    background:var(--ink); color:var(--bg); border-color:var(--ink);
+  }
+
+  main{padding-block:22px 60px; display:flex; flex-direction:column; gap:22px;}
+  section[hidden]{display:none!important;}
+
+  .settings-panel{
+    border:1px solid var(--border); border-radius:12px; background:var(--surface);
+    padding:16px;
+  }
+  .settings-panel h2{font-family:var(--font-display); font-size:1.05rem; margin:0 0 6px;}
+  .settings-panel p{font-size:.82rem; color:var(--muted); line-height:1.5; margin:0 0 12px;}
+  .settings-panel a{color:var(--dream);}
+  .key-row{display:flex; gap:8px;}
+  .key-row input{
+    flex:1; background:var(--bg); color:var(--ink); border:1px solid var(--border);
+    border-radius:9px; padding:10px 12px; font-family:var(--font-mono); font-size:.85rem;
+  }
+  .key-status{font-size:.78rem; margin-top:10px; color:var(--muted);}
+  .key-status.ok{color:var(--dream);}
+
+  label.field-label{
+    display:block; font-size:.78rem; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;
+  }
+  textarea{
+    width:100%; min-height:130px; resize:vertical;
+    background:var(--surface); color:var(--ink);
+    border:1px solid var(--border); border-radius:12px;
+    padding:14px; font-family:var(--font-body); font-size:.95rem; line-height:1.5;
+  }
+  textarea::placeholder{color:var(--muted);}
+  textarea:focus, button:focus-visible{ outline:2px solid var(--dream); outline-offset:2px; }
+
+  .style-row{display:flex; gap:8px; margin-top:14px;}
+  .style-btn{
+    flex:1; padding:10px; border-radius:9px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); font-family:var(--font-body);
+    font-size:.82rem; font-weight:600; cursor:pointer; text-align:left;
+  }
+  .style-btn span{display:block; font-weight:400; color:var(--muted); font-size:.74rem; margin-top:2px;}
+  .style-btn[aria-pressed="true"]{ background:var(--dream-soft); border-color:var(--dream); }
+  .style-btn[aria-pressed="true"] span{color:var(--dream);}
+
+  .primary-btn{
+    margin-top:16px; width:100%; padding:13px; border-radius:10px; border:none;
+    background:var(--accent); color:var(--accent-contrast);
+    font-family:var(--font-body); font-size:.92rem; font-weight:700; cursor:pointer;
+  }
+  .primary-btn:disabled{opacity:.55; cursor:default;}
+  .ghost-btn{
+    padding:10px 14px; border-radius:9px; border:1px solid var(--border);
+    background:transparent; color:var(--ink); font-family:var(--font-body);
+    font-size:.85rem; font-weight:600; cursor:pointer;
+  }
+  .text-btn{
+    background:none; border:none; color:var(--muted); font-family:var(--font-body);
+    font-size:.78rem; cursor:pointer; padding:4px 0; text-decoration:underline;
+  }
+  .hint{font-size:.78rem; color:var(--muted); margin-top:8px;}
+  .hint.error{color:var(--danger);}
+
+  .story-panel{
+    margin-top:22px; border-radius:14px; background:var(--surface);
+    border:1px solid var(--border); padding:20px 20px 18px;
+    position:relative; overflow:hidden;
+  }
+  .story-panel::before{
+    content:""; position:absolute; inset:0 auto 0 0; width:4px;
+    background:linear-gradient(var(--accent), var(--dream));
+  }
+  .story-status{font-size:.78rem; color:var(--muted); font-family:var(--font-mono); margin:0 0 10px;}
+  .story-text{
+    font-family:var(--font-display); font-size:1.05rem; line-height:1.65;
+    white-space:pre-wrap; margin:0;
+  }
+  .story-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px;}
+
+  .diario-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
+  .diario-head h2{font-family:var(--font-display); font-size:1.1rem; margin:0;}
+
+  .empty{ text-align:center; padding:48px 16px; color:var(--muted); }
+  .empty p{margin:6px 0 0; font-size:.85rem;}
+  .empty .big{font-family:var(--font-display); font-size:1.1rem; color:var(--ink);}
+
+  .entry-list{display:flex; flex-direction:column; gap:10px;}
+  .entry{ border:1px solid var(--border); border-radius:12px; background:var(--surface); overflow:hidden; }
+  .entry-head{
+    width:100%; display:flex; align-items:center; gap:12px;
+    padding:14px 16px; background:none; border:none; cursor:pointer; text-align:left;
+    font-family:var(--font-body); color:var(--ink);
+  }
+  .entry-date{ font-family:var(--font-mono); font-size:.72rem; color:var(--muted); white-space:nowrap; padding-top:2px; }
+  .entry-preview{flex:1; min-width:0;}
+  .entry-preview .p1{
+    font-family:var(--font-display); font-size:.98rem; line-height:1.4;
+    overflow:hidden; text-overflow:ellipsis; display:-webkit-box;
+    -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  }
+  .badge{
+    display:inline-block; margin-top:6px; font-family:var(--font-mono);
+    font-size:.68rem; letter-spacing:.03em; padding:2px 7px; border-radius:5px;
+    background:var(--accent-soft); color:var(--ink);
+  }
+  .entry.style-fiel .badge{background:var(--dream-soft);}
+  .entry-body{ padding:0 16px 18px; border-top:1px solid var(--border); }
+  .entry-body .story-text{font-size:.98rem; padding-top:16px;}
+  .entry-fragments{ margin-top:16px; padding-top:14px; border-top:1px dashed var(--border); }
+  .entry-fragments .field-label{margin-bottom:6px;}
+  .entry-fragments p{ font-size:.85rem; color:var(--muted); line-height:1.5; white-space:pre-wrap; margin:0; }
+  .entry-footer{ display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
+
+  footer.foot{ padding-block:0 30px; text-align:center; }
+  footer.foot p{ font-size:.72rem; color:var(--muted); margin:0; }
+
+  @media (max-width:420px){
+    h1{font-size:1.3rem;}
+    .story-text{font-size:1rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand-row">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <div>
+          <h1>Bitácora Onírica</h1>
+          <p class="tagline">Lo que sueñas, antes de que se te olvide.</p>
+        </div>
+      </div>
+      <button type="button" class="settings-toggle" id="settingsToggle">Clave de IA</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button type="button" id="tabNew" role="tab" aria-selected="true">Nueva entrada</button>
+      <button type="button" id="tabDiario" role="tab" aria-selected="false">Diario</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="settings-panel" id="settingsPanel" hidden>
+      <h2>Clave de la API de Gemini</h2>
+      <p>Se guarda solo en este teléfono (nunca sale de aquí salvo hacia Google al generar un relato). Consíguela gratis en
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+        Si activaste facturación en tu proyecto de Google Cloud, tu contenido no se usa para entrenar modelos.</p>
+      <div class="key-row">
+        <input type="password" id="apiKeyInput" placeholder="Pega aquí tu clave (empieza por AIza…)" autocomplete="off">
+        <button type="button" class="ghost-btn" id="saveKeyBtn">Guardar</button>
+      </div>
+      <p class="key-status" id="keyStatus"></p>
+    </div>
+
+    <section id="viewNew">
+      <form id="entryForm">
+        <label class="field-label" for="fragments">Fragmentos del sueño</label>
+        <textarea id="fragments" placeholder="Escribe lo que recuerdes, aunque sea suelto: lugares, personas, sensaciones, una imagen concreta. No hace falta que tenga sentido todavía."></textarea>
+
+        <div class="style-row" role="group" aria-label="Estilo del relato">
+          <button type="button" class="style-btn" id="styleNarrativo" aria-pressed="true">
+            Narrativo
+            <span>Toma libertad creativa, prioriza que se lea bien</span>
+          </button>
+          <button type="button" class="style-btn" id="styleFiel" aria-pressed="false">
+            Fiel al recuerdo
+            <span>Se ciñe a lo que has escrito, sin rellenar huecos</span>
+          </button>
+        </div>
+
+        <button type="submit" class="primary-btn" id="submitBtn">Escribir relato</button>
+        <p class="hint" id="formHint" hidden></p>
+      </form>
+
+      <div class="story-panel" id="storyPanel" hidden>
+        <p class="story-status" id="storyStatus">Escribiendo…</p>
+        <p class="story-text" id="storyText"></p>
+        <div class="story-actions" id="actionsDone" hidden>
+          <button type="button" class="primary-btn" id="saveBtn" style="margin-top:0;">Guardar en el diario</button>
+          <button type="button" class="ghost-btn" id="retryBtn">Volver a escribir</button>
+          <button type="button" class="text-btn" id="discardBtn">Descartar</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="viewDiario" hidden>
+      <div class="diario-head">
+        <h2>Tu diario</h2>
+        <button type="button" class="text-btn" id="exportBtn">Exportar copia</button>
+      </div>
+      <div id="diarioEmpty" class="empty" hidden>
+        <p class="big">Todavía no hay nada aquí</p>
+        <p>Cuando guardes tu primera entrada, aparecerá en este diario.</p>
+      </div>
+      <div id="entryList" class="entry-list"></div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Guardado solo en este dispositivo · usa "Exportar copia" de vez en cuando como respaldo</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = 'bitacora_entries_v1';
+  var API_KEY_STORAGE = 'bitacora_gemini_key';
+  var MODEL = 'gemini-3.8-flash';
+
+  var els = {};
+  ['tabNew','tabDiario','viewNew','viewDiario','entryForm','fragments',
+   'styleNarrativo','styleFiel','submitBtn','formHint','storyPanel','storyStatus',
+   'storyText','actionsDone','saveBtn','retryBtn','discardBtn','diarioEmpty','entryList',
+   'settingsToggle','settingsPanel','apiKeyInput','saveKeyBtn','keyStatus','exportBtn'
+  ].forEach(function(id){ els[id] = document.getElementById(id); });
+
+  var state = { style: 'narrativo', lastStory: '', entries: [] };
+
+  // ---------- nav ----------
+  function showView(name){
+    var isNew = name === 'new';
+    els.viewNew.hidden = !isNew;
+    els.viewDiario.hidden = isNew;
+    els.tabNew.setAttribute('aria-selected', String(isNew));
+    els.tabDiario.setAttribute('aria-selected', String(!isNew));
+    if (!isNew) renderEntries();
+  }
+  els.tabNew.addEventListener('click', function(){ showView('new'); });
+  els.tabDiario.addEventListener('click', function(){ showView('diario'); });
+
+  // ---------- settings / API key ----------
+  function getKey(){ return localStorage.getItem(API_KEY_STORAGE) || ''; }
+  function refreshKeyStatus(){
+    var k = getKey();
+    if (k){
+      els.keyStatus.textContent = 'Clave guardada (termina en …' + k.slice(-4) + ').';
+      els.keyStatus.className = 'key-status ok';
+      els.apiKeyInput.value = '';
+      els.apiKeyInput.placeholder = 'Ya tienes una clave guardada — pega otra para reemplazarla';
+    } else {
+      els.keyStatus.textContent = 'Sin clave guardada todavía.';
+      els.keyStatus.className = 'key-status';
+    }
+  }
+  els.settingsToggle.addEventListener('click', function(){
+    els.settingsPanel.hidden = !els.settingsPanel.hidden;
+  });
+  els.saveKeyBtn.addEventListener('click', function(){
+    var v = els.apiKeyInput.value.trim();
+    if (!v) return;
+    localStorage.setItem(API_KEY_STORAGE, v);
+    refreshKeyStatus();
+  });
+  refreshKeyStatus();
+  if (!getKey()) els.settingsPanel.hidden = false;
+
+  // ---------- style toggle ----------
+  function setStyle(s){
+    state.style = s;
+    els.styleNarrativo.setAttribute('aria-pressed', String(s === 'narrativo'));
+    els.styleFiel.setAttribute('aria-pressed', String(s === 'fiel'));
+  }
+  els.styleNarrativo.addEventListener('click', function(){ setStyle('narrativo'); });
+  els.styleFiel.addEventListener('click', function(){ setStyle('fiel'); });
+
+  // ---------- Gemini call ----------
+  function buildPrompt(fragments, style){
+    if (style === 'fiel'){
+      return 'A partir de estos fragmentos de un sueño que alguien recuerda justo al despertar, ' +
+        'reconstruye en español lo que recuerda, de forma breve (entre 100 y 200 palabras) y fiel a lo dicho. ' +
+        'No inventes detalles que no se mencionen; si falta información, déjalo abierto o ambiguo en vez de rellenarlo. ' +
+        'No pongas título. Responde solo con el texto del relato, sin explicaciones ni comentarios adicionales.\n\n' +
+        'Fragmentos del sueño:\n' + fragments;
+    }
+    return 'Eres un escritor literario. A partir de estos fragmentos de un sueño que alguien recuerda justo al despertar, ' +
+      'escribe en español un relato corto (entre 220 y 380 palabras) que les dé forma de historia. ' +
+      'Tienes libertad creativa para añadir atmósfera, sensaciones y detalles que conecten los fragmentos, ' +
+      'aunque te alejes un poco del recuerdo exacto; prioriza que el relato se sienta completo y bien escrito. ' +
+      'No pongas título. Responde solo con el texto del relato, sin explicaciones ni comentarios adicionales.\n\n' +
+      'Fragmentos del sueño:\n' + fragments;
+  }
+
+  function extractText(data){
+    try{
+      var steps = data.steps || [];
+      var out = '';
+      for (var i=0;i<steps.length;i++){
+        if (steps[i].type === 'model_output' && Array.isArray(steps[i].content)){
+          steps[i].content.forEach(function(c){
+            if (c.type === 'text' && c.text) out += c.text;
+          });
+        }
+      }
+      return out.trim();
+    } catch(e){ return ''; }
+  }
+
+  function callGemini(prompt){
+    var key = getKey();
+    if (!key) return Promise.reject({ friendly: 'Falta tu clave de la API. Ábrela con el botón "Clave de IA" arriba.' });
+    return fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': key
+      },
+      body: JSON.stringify({ model: MODEL, input: prompt })
+    }).then(function(res){
+      return res.json().then(function(data){
+        if (!res.ok){
+          var msg = (data && data.error && data.error.message) || ('Error ' + res.status);
+          return Promise.reject({ friendly: 'La IA ha devuelto un error: ' + msg });
+        }
+        var text = extractText(data);
+        if (!text) return Promise.reject({ friendly: 'La IA no ha devuelto texto. Prueba de nuevo.' });
+        return text;
+      });
+    }).catch(function(e){
+      if (e && e.friendly) return Promise.reject(e);
+      return Promise.reject({ friendly: 'No se ha podido conectar con la IA (' + (e && e.message ? e.message : 'error de red') + '). Si esto se repite siempre, puede ser un bloqueo de CORS del navegador — avísame y lo resolvemos con un pequeño proxy.' });
+    });
+  }
+
+  // ---------- form ----------
+  function setFormHint(msg, isError){
+    if (!msg){ els.formHint.hidden = true; els.formHint.textContent=''; return; }
+    els.formHint.hidden = false;
+    els.formHint.textContent = msg;
+    els.formHint.className = 'hint' + (isError ? ' error' : '');
+  }
+  function resetStoryPanel(){
+    els.storyPanel.hidden = true;
+    els.storyText.textContent = '';
+    els.actionsDone.hidden = true;
+  }
+  function startGeneration(){
+    setFormHint('', false);
+    var text = els.fragments.value.trim();
+    if (!text){
+      setFormHint('Escribe al menos unas palabras sobre el sueño antes de generar el relato.', true);
+      return;
+    }
+    if (!getKey()){
+      setFormHint('Falta tu clave de la API de Gemini. Ábrela arriba con "Clave de IA".', true);
+      els.settingsPanel.hidden = false;
+      return;
+    }
+    els.submitBtn.disabled = true;
+    els.storyPanel.hidden = false;
+    els.storyStatus.textContent = 'Escribiendo…';
+    els.storyText.textContent = '';
+    els.actionsDone.hidden = true;
+
+    callGemini(buildPrompt(text, state.style)).then(function(story){
+      state.lastStory = story;
+      els.storyText.textContent = story;
+      els.storyStatus.textContent = 'Relato listo';
+      els.actionsDone.hidden = false;
+      els.submitBtn.disabled = false;
+    }).catch(function(e){
+      els.storyStatus.textContent = (e && e.friendly) || 'No se ha podido generar el relato.';
+      els.submitBtn.disabled = false;
+    });
+  }
+  els.entryForm.addEventListener('submit', function(ev){ ev.preventDefault(); startGeneration(); });
+  els.retryBtn.addEventListener('click', function(){ startGeneration(); });
+  els.discardBtn.addEventListener('click', function(){ resetStoryPanel(); els.submitBtn.disabled = false; });
+
+  function makePreview(story){
+    var t = story.trim().replace(/\s+/g, ' ');
+    if (t.length <= 90) return t;
+    var cut = t.slice(0, 90);
+    var lastSpace = cut.lastIndexOf(' ');
+    return cut.slice(0, lastSpace > 40 ? lastSpace : 90) + '…';
+  }
+
+  // ---------- local storage persistence ----------
+  function loadEntries(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      state.entries = raw ? JSON.parse(raw) : [];
+    } catch(e){ state.entries = []; }
+  }
+  function saveEntries(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.entries));
+  }
+  loadEntries();
+
+  els.saveBtn.addEventListener('click', function(){
+    var fragments = els.fragments.value.trim();
+    var story = state.lastStory;
+    els.saveBtn.disabled = true;
+    state.entries.unshift({
+      id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+      fragments: fragments,
+      story: story,
+      style: state.style,
+      preview: makePreview(story),
+      createdAt: new Date().toISOString()
+    });
+    saveEntries();
+    els.fragments.value = '';
+    resetStoryPanel();
+    els.saveBtn.disabled = false;
+    showView('diario');
+  });
+
+  // ---------- diario ----------
+  function fmtDate(iso){
+    try{
+      var d = new Date(iso);
+      var datePart = d.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' });
+      var timePart = d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+      return datePart + ' · ' + timePart;
+    } catch(e){ return ''; }
+  }
+  function styleLabel(s){ return s === 'fiel' ? 'Fiel' : 'Narrativo'; }
+
+  function buildEntryEl(item){
+    var entry = document.createElement('article');
+    entry.className = 'entry' + (item.style === 'fiel' ? ' style-fiel' : '');
+
+    var head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'entry-head';
+    head.setAttribute('aria-expanded', 'false');
+
+    var date = document.createElement('span');
+    date.className = 'entry-date';
+    date.textContent = fmtDate(item.createdAt);
+
+    var preview = document.createElement('span');
+    preview.className = 'entry-preview';
+    var p1 = document.createElement('span');
+    p1.className = 'p1';
+    p1.textContent = item.preview || item.story || '';
+    var badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = styleLabel(item.style);
+    preview.appendChild(p1);
+    preview.appendChild(badge);
+
+    head.appendChild(date);
+    head.appendChild(preview);
+
+    var body = document.createElement('div');
+    body.className = 'entry-body';
+    body.hidden = true;
+
+    var storyText = document.createElement('p');
+    storyText.className = 'story-text';
+    storyText.textContent = item.story || '';
+
+    var fragWrap = document.createElement('div');
+    fragWrap.className = 'entry-fragments';
+    var fragLabel = document.createElement('p');
+    fragLabel.className = 'field-label';
+    fragLabel.textContent = 'Fragmentos originales';
+    var fragText = document.createElement('p');
+    fragText.textContent = item.fragments || '';
+    fragWrap.appendChild(fragLabel);
+    fragWrap.appendChild(fragText);
+
+    var footer = document.createElement('div');
+    footer.className = 'entry-footer';
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'text-btn';
+    delBtn.textContent = 'Eliminar';
+    delBtn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      if (delBtn.textContent === 'Eliminar'){
+        delBtn.textContent = '¿Seguro? Sí, eliminar';
+        return;
+      }
+      state.entries = state.entries.filter(function(x){ return x.id !== item.id; });
+      saveEntries();
+      renderEntries();
+    });
+    footer.appendChild(delBtn);
+
+    body.appendChild(storyText);
+    body.appendChild(fragWrap);
+    body.appendChild(footer);
+
+    head.addEventListener('click', function(){
+      var open = body.hidden;
+      body.hidden = !open;
+      head.setAttribute('aria-expanded', String(open));
+    });
+
+    entry.appendChild(head);
+    entry.appendChild(body);
+    return entry;
+  }
+
+  function renderEntries(){
+    els.entryList.innerHTML = '';
+    els.diarioEmpty.hidden = state.entries.length !== 0;
+    state.entries.forEach(function(item){
+      els.entryList.appendChild(buildEntryEl(item));
+    });
+  }
+
+  els.exportBtn.addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify(state.entries, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'bitacora-onirica-copia-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- service worker (instalable) ----------
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>
